@@ -1,90 +1,67 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Poliklinik' }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-    @vite(['resources/js/app.js','resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+<body class="bg-slate-50">
 
-<body>
+    <div class="drawer lg:drawer-open">
+        <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+        
+        <div class="drawer-content flex flex-col">
+            
+            <div class="navbar bg-base-100 border-b px-8 min-h-[64px]">
+                <div class="flex-1"></div>
 
-    <div class="app-wrapper">
-
-        {{-- SIDEBAR --}}
-        <div id="appSidebar" class="sidebar-fixed">
-            @include('components.partials.sidebar')
-        </div>
-
-        {{-- OVERLAY --}}
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-        {{-- MAIN --}}
-        <div class="main-content">
-
-            @include('components.partials.header')
-
-            <div class="main-scroll">
-
-                @if(session('success'))
-                <div class="alert alert-success mb-4 rounded-xl shadow-sm">
-                    <i class="fas fa-check-circle"></i>
-                    <span>{{ session('success') }}</span>
+                <div class="flex-none flex items-center gap-3">
+                    <div class="flex flex-col items-end justify-center leading-tight">
+                        <span class="text-xs font-bold text-gray-800">Pengguna</span>
+                        <span class="text-[10px] text-gray-400">admin</span>
+                    </div>
+                    <div class="avatar placeholder flex items-center">
+                        <div class="bg-primary text-primary-content rounded-full w-10 h-10 flex items-center justify-center border border-primary/20">
+                            <span class="text-sm font-bold">U</span>
+                        </div>
+                    </div>
                 </div>
-                @endif
-
-                @if(session('error'))
-                <div class="alert alert-error mb-4 rounded-xl shadow-sm">
-                    <i class="fas fa-circle-xmark"></i>
-                    <span>{{ session('error') }}</span>
-                </div>
-                @endif
-
-                {{ $slot }}
-
             </div>
 
-            @include('components.partials.footer')
+            <main class="p-8 min-h-screen">
+                {{ $slot }}
+            </main>
 
+            <footer class="p-4 bg-base-100 text-base-content border-t text-xs text-gray-400">
+                <aside>
+                    <p>Copyright © 2026 — All rights reserved by <span class="text-primary font-bold">Poliklinik</span></p>
+                </aside>
+            </footer>
+        </div> 
+
+        <div class="drawer-side shadow-xl">
+            <label for="my-drawer-2" class="drawer-overlay"></label> 
+            <div class="menu p-0 w-72 min-h-full bg-[#2D3EAF] text-white flex flex-col">
+                
+                <div class="flex-1 mt-6">
+                    @include('components.partials.sidebar')
+                </div>
+
+                <div class="p-4 border-t border-white/10">
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-error btn-block text-white gap-2 rounded-xl font-bold shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Keluar
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-
     </div>
 
-    <script>
-        function toggleSidebar(){
-            const sidebar=document.getElementById('appSidebar')
-            const overlay=document.getElementById('sidebarOverlay')
-
-            sidebar.classList.toggle('open')
-
-            overlay.style.display=
-            sidebar.classList.contains('open')
-            ? 'block'
-            : 'none'
-        }
-
-        function toggleFullscreen(){
-            const icon=document.getElementById('fsIcon')
-
-            if(!document.fullscreenElement){
-                document.documentElement.requestFullscreen()
-                icon.className='fas fa-compress'
-            }
-            else{
-                document.exitFullscreen()
-                icon.className='fas fa-expand'
-            }
-        }
-    </script>
-
-    @stack('scripts')
-
 </body>
-
 </html>
