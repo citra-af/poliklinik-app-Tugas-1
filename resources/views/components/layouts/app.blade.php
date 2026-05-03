@@ -5,57 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Poliklinik' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-slate-50">
+<body class="bg-slate-50 antialiased overflow-x-hidden">
 
     <div class="drawer lg:drawer-open">
         <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
         
-        <div class="drawer-content flex flex-col">
-            
-            <div class="navbar bg-base-100 border-b px-8 min-h-[64px]">
-                <div class="flex-1"></div>
-
+        <div class="drawer-content flex flex-col min-h-screen">
+            {{-- Navbar --}}
+            <div class="navbar bg-base-100 border-b px-8 min-h-[64px] sticky top-0 z-10">
+                <div class="flex-1 lg:hidden">
+                    <label for="my-drawer-2" class="btn btn-ghost drawer-button">
+                        <i class="fas fa-bars"></i>
+                    </label>
+                </div>
+                <div class="flex-1 hidden lg:block"></div>
                 <div class="flex-none flex items-center gap-3">
                     <div class="flex flex-col items-end justify-center leading-tight">
-                        <span class="text-xs font-bold text-gray-800">Pengguna</span>
-                        <span class="text-[10px] text-gray-400">admin</span>
+                        <span class="text-xs font-bold text-gray-800">{{ Auth::user()->name ?? 'Pengguna' }}</span>
+                        <span class="text-[10px] text-gray-400 capitalize">{{ Auth::user()->role ?? 'admin' }}</span>
                     </div>
-                    <div class="avatar placeholder flex items-center">
-                        <div class="bg-primary text-primary-content rounded-full w-10 h-10 flex items-center justify-center border border-primary/20">
-                            <span class="text-sm font-bold">U</span>
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-10 h-10 flex items-center justify-center">
+                            <span class="text-sm font-bold">{{ substr(Auth::user()->name ?? 'U', 0, 1) }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <main class="p-8 min-h-screen">
+            {{-- Main Content --}}
+            <main class="p-8 flex-1">
                 {{ $slot }}
             </main>
 
-            <footer class="p-4 bg-base-100 text-base-content border-t text-xs text-gray-400">
-                <aside>
-                    <p>Copyright © 2026 — All rights reserved by <span class="text-primary font-bold">Poliklinik</span></p>
-                </aside>
+            <footer class="p-4 bg-base-100 text-base-content border-t text-xs text-center text-gray-400">
+                <p>Copyright © 2026 — <span class="text-primary font-bold">Poliklinik</span></p>
             </footer>
         </div> 
 
-        <div class="drawer-side shadow-xl">
+        {{-- Sidebar Section --}}
+        <div class="drawer-side z-20">
             <label for="my-drawer-2" class="drawer-overlay"></label> 
-            <div class="menu p-0 w-72 min-h-full bg-[#2D3EAF] text-white flex flex-col">
+            
+            {{-- Bagian ini dikunci h-screen dan overflow-hidden agar tidak bisa di-scroll --}}
+            <div class="w-72 h-screen bg-[#2D3EAF] text-white flex flex-col overflow-hidden">
                 
-                <div class="flex-1 mt-6">
+                {{-- Area Menu Atas --}}
+                <div class="flex-1 overflow-y-auto">
                     @include('components.partials.sidebar')
                 </div>
 
-                <div class="p-4 border-t border-white/10">
+                {{-- Tombol Logout Merah di Paling Bawah (Pindah ke app.blade.php) --}}
+                <div class="p-4 border-t border-white/10 bg-[#2D3EAF]">
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-error btn-block text-white gap-2 rounded-xl font-bold shadow-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Keluar
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all duration-200 border-none">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Keluar</span>
                         </button>
                     </form>
                 </div>
