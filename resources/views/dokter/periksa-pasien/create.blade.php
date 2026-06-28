@@ -12,6 +12,13 @@
         </h2>
     </div>
 
+    {{-- Alert Error --}}
+    @if(session('error'))
+        <div class="mb-4 p-4 rounded-lg bg-red-100 text-red-700 text-sm font-semibold">
+            {{ session('error') }}
+        </div>
+    @endif
+
     {{-- Card --}}
     <div class="card bg-base-100 shadow-sm rounded-2xl border border-slate-200">
         <div class="card-body p-8">
@@ -20,27 +27,60 @@
                 @csrf
                 <input type="hidden" name="id_daftar_poli" value="{{ $id }}">
 
-                {{-- Pilih Obat --}}
+                {{-- PILIH OBAT --}}
                 <div class="form-control mb-5">
                     <label class="label pb-1">
-                        <span class="text-sm font-semibold text-gray-700">Pilih Obat <span class="text-red-500">*</span></span>
+                        <span class="text-sm font-semibold text-gray-700">
+                            Pilih Obat <span class="text-red-500">*</span>
+                        </span>
                     </label>
-                    <select id="select-obat" class="select select-bordered w-full rounded-lg border-2 px-4">
+
+                    <select id="select-obat"
+                        class="select select-bordered w-full rounded-lg border-2 px-4">
                         <option value="">-- Pilih Obat --</option>
+
                         @foreach ($obats as $obat)
+
+                            @php
+                                $status = 'aman';
+                                if ($obat->stok <= 0) {
+                                    $status = 'habis';
+                                } elseif ($obat->stok <= 5) {
+                                    $status = 'menipis';
+                                }
+                            @endphp
+
                             <option value="{{ $obat->id }}"
                                 data-nama="{{ $obat->nama_obat }}"
-                                data-harga="{{ $obat->harga }}">
-                                {{ $obat->nama_obat }} - Rp{{ number_format($obat->harga) }}
+                                data-harga="{{ $obat->harga }}"
+                                data-stok="{{ $obat->stok }}"
+                                {{ $obat->stok <= 0 ? 'disabled' : '' }}>
+
+                                {{ $obat->nama_obat }}
+                                - Rp{{ number_format($obat->harga) }}
+                                (Stok: {{ $obat->stok }})
+
+                                @if($status == 'aman')
+                                    🟢
+                                @elseif($status == 'menipis')
+                                    🟡
+                                @else
+                                    🔴
+                                @endif
+
                             </option>
+
                         @endforeach
+
                     </select>
                 </div>
 
-                {{-- Obat Terpilih --}}
+                {{-- OBAT TERPILIH --}}
                 <div class="form-control mb-5">
-                    <label class="label pb-1 ">
-                        <span class="text-sm font-semibold text-gray-700">Obat Terpilih</span>
+                    <label class="label pb-1">
+                        <span class="text-sm font-semibold text-gray-700">
+                            Obat Terpilih
+                        </span>
                     </label>
 
                     <ul id="obat-terpilih" class="flex flex-col gap-2 mb-2 min-h-[48px]"></ul>
@@ -49,33 +89,42 @@
                     <input type="hidden" name="obat_json" id="obat_json">
                 </div>
 
-                {{-- Total Harga --}}
+                {{-- TOTAL --}}
                 <div class="form-control mb-5">
                     <label class="label pb-1">
-                        <span class="text-sm font-semibold text-gray-700">Total Harga</span>
+                        <span class="text-sm font-semibold text-gray-700">
+                            Total Harga
+                        </span>
                     </label>
-                    <div class="input input-bordered w-full rounded-lg flex items-center bg-slate-50 text-slate-700 font-bold" id="total-harga">
+
+                    <div class="input input-bordered w-full rounded-lg flex items-center bg-slate-50 font-bold"
+                        id="total-harga">
                         Rp 0
                     </div>
                 </div>
 
-                {{-- Catatan --}}
+                {{-- CATATAN --}}
                 <div class="form-control mb-8">
                     <label class="label pb-1">
-                        <span class="text-sm font-semibold text-gray-700">Catatan <span class="text-slate-400 font-normal">(Opsional)</span></span>
+                        <span class="text-sm font-semibold text-gray-700">
+                            Catatan
+                            <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </span>
                     </label>
-                    <textarea name="catatan" id="catatan" rows="4"
-                        placeholder="Masukkan catatan..."
-                        class="textarea textarea-bordered w-full border-2 px-4 py-2 rounded-lg resize-none">{{ old('catatan') }}</textarea>
+
+                    <textarea name="catatan" rows="4"
+                        class="textarea textarea-bordered w-full border-2 px-4 py-2 rounded-lg resize-none"
+                        placeholder="Masukkan catatan..."></textarea>
                 </div>
 
-                {{-- Buttons --}}
+                {{-- BUTTON --}}
                 <div class="flex gap-3">
                     <button type="submit"
                         class="btn bg-[#2d4499] hover:bg-[#1e2d6b] text-white border-none rounded-lg px-6">
                         <i class="fas fa-save"></i>
                         Simpan
                     </button>
+
                     <a href="{{ route('periksa-pasien.index') }}"
                         class="btn btn-ghost bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg px-6">
                         Batal
@@ -83,9 +132,11 @@
                 </div>
 
             </form>
+
         </div>
     </div>
 
+    {{-- SCRIPT --}}
     <script>
         const selectObat = document.getElementById('select-obat');
         const listObat = document.getElementById('obat-terpilih');
@@ -96,46 +147,68 @@
         let daftarObat = [];
 
         selectObat.addEventListener('change', () => {
-            const selectedOption = selectObat.options[selectObat.selectedIndex];
-            const id = selectedOption.value;
-            const nama = selectedOption.dataset.nama;
-            const harga = parseInt(selectedOption.dataset.harga || 0);
 
-            if (!id || daftarObat.some(o => o.id == id)) return;
+            const opt = selectObat.options[selectObat.selectedIndex];
 
-            daftarObat.push({ id, nama, harga });
-            renderObat();
+            const id = opt.value;
+            const nama = opt.dataset.nama;
+            const harga = parseInt(opt.dataset.harga || 0);
+            const stok = parseInt(opt.dataset.stok || 0);
+
+            if (!id) return;
+
+            if (stok <= 0) {
+                alert('Stok obat ini habis');
+                return;
+            }
+
+            if (daftarObat.some(o => o.id == id)) {
+                alert('Obat sudah dipilih');
+                return;
+            }
+
+            daftarObat.push({ id, nama, harga, stok });
+
+            render();
             selectObat.selectedIndex = 0;
         });
 
-        function renderObat() {
+        function render() {
             listObat.innerHTML = '';
             let total = 0;
 
             daftarObat.forEach((obat, index) => {
+
                 total += obat.harga;
 
-                const item = document.createElement('li');
-                item.className = 'flex items-center justify-between px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700';
-                item.innerHTML = `
-                    <span>${obat.nama} — <span class="font-semibold">Rp ${obat.harga.toLocaleString()}</span></span>
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center px-4 py-2 bg-slate-50 border rounded-lg text-sm";
+
+                li.innerHTML = `
+                    <span>
+                        ${obat.nama}
+                        <span class="font-bold">Rp ${obat.harga.toLocaleString()}</span>
+                        <span class="text-xs text-slate-500">(Stok: ${obat.stok})</span>
+                    </span>
+
                     <button type="button"
-                        onclick="hapusObat(${index})"
-                        class="btn btn-sm bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-3">
-                        <i class="fas fa-trash"></i>
+                        onclick="hapus(${index})"
+                        class="px-3 py-1 bg-red-500 text-white rounded-lg">
+                        Hapus
                     </button>
                 `;
-                listObat.appendChild(item);
+
+                listObat.appendChild(li);
             });
 
             inputBiaya.value = total;
-            totalHargaEl.textContent = `Rp ${total.toLocaleString()}`;
+            totalHargaEl.innerText = "Rp " + total.toLocaleString();
             inputObatJson.value = JSON.stringify(daftarObat.map(o => o.id));
         }
 
-        function hapusObat(index) {
+        function hapus(index) {
             daftarObat.splice(index, 1);
-            renderObat();
+            render();
         }
     </script>
 

@@ -9,6 +9,7 @@ use App\Models\Obat;
 use App\Models\Periksa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PeriksaPasienController extends Controller
 {
@@ -28,7 +29,8 @@ class PeriksaPasienController extends Controller
 
     public function create($id)
     {
-        $obats = Obat::all();
+        $obats = Obat::orderBy('nama_obat')->get();
+
         return view('dokter.periksa-pasien.create', compact('obats', 'id'));
     }
 
@@ -42,39 +44,58 @@ class PeriksaPasienController extends Controller
 
         $obatIds = json_decode($request->obat_json, true);
 
-        $periksa = Periksa::create([
-            'id_daftar_poli' => $request->id_daftar_poli,
-            'tgl_periksa' => now(),
-            'catatan' => $request->catatan,
-            'biaya_periksa' => $request->biaya_periksa + 150000,
-        ]);
+        DB::beginTransaction();
 
-        foreach ($obatIds as $idObat) {
+        try {
 
-            $obat = Obat::find($idObat);
-
-            // ❌ CEK OBAT ADA ATAU TIDAK
-            if (!$obat) {
-                return back()->with('error', 'Obat tidak ditemukan');
-            }
-
-            // ❌ CEK STOK HABIS
-            if ($obat->stok <= 0) {
-                return back()->with('error', 'Stok obat ' . $obat->nama_obat . ' habis');
-            }
-
-            // ✅ KURANGI STOK
-            $obat->stok = $obat->stok - 1;
-            $obat->save();
-
-            // ✅ SIMPAN DETAIL PERIKSA
-            DetailPeriksa::create([
-                'id_periksa' => $periksa->id,
-                'id_obat' => $idObat,
+            $periksa = Periksa::create([
+                'id_daftar_poli' => $request->id_daftar_poli,
+                'tgl_periksa' => now(),
+                'catatan' => $request->catatan,
+                'biaya_periksa' => $request->biaya_periksa + 150000,
             ]);
-        }
 
-        return redirect()->route('periksa-pasien.index')
-            ->with('success', 'Data periksa berhasil disimpan.');
+            foreach ($obatIds as $idObat) {
+
+                $obat = Obat::lockForUpdate()->find($idObat);
+
+                if (!$obat) {
+                    DB::rollBack();
+
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Obat tidak ditemukan.');
+                }
+
+                if ($obat->stok <= 0) {
+                    DB::rollBack();
+
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Stok obat "' . $obat->nama_obat . '" sudah habis.');
+                }
+
+                $obat->decrement('stok');
+
+                DetailPeriksa::create([
+                    'id_periksa' => $periksa->id,
+                    'id_obat' => $obat->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('periksa-pasien.index')
+                ->with('success', 'Pemeriksaan berhasil disimpan.');
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan pemeriksaan.');
+        }
     }
 }
