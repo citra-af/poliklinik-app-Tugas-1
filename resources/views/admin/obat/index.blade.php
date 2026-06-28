@@ -22,71 +22,61 @@
             <div class="overflow-x-auto">
                 <table class="table w-full">
 
-                    {{-- Table Head --}}
-                    <thead class="bg-slate-50 text-slate-500 uppercase text-xs tracking-wider">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
                         <tr>
-                            <th class="px-6 py-4">Nama Obat</th>
-                            <th class="px-6 py-4">Kemasan</th>
-                            <th class="px-6 py-4">Harga</th>
-                            <th class="px-6 py-4 text-right">Aksi</th>
+                            <th>Nama Obat</th>
+                            <th>Kemasan</th>
+                            <th>Harga</th>
+                            <th>Stok</th> {{-- ✅ BARU --}}
+                            <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
 
-                    {{-- Table Body --}}
-                    <tbody class="text-sm text-slate-700">
+                    <tbody>
                         @forelse($obats as $obat)
-                        <tr class="border-t border-slate-100 hover:bg-slate-50 transition">
+                        <tr class="hover">
 
-                            <td class="px-6 py-4 font-semibold text-slate-800">
+                            <td class="font-semibold">
                                 {{ $obat->nama_obat }}
                             </td>
 
-                            <td class="px-6 py-4">
-                                <span class="inline-block px-3 py-1 text-xs font-semibold 
-                                             rounded-full bg-green-100 text-green-600">
-                                    {{ $obat->kemasan ?? '-' }}
-                                </span>
+                            <td>
+                                {{ $obat->kemasan ?? '-' }}
                             </td>
 
-                            <td class="px-6 py-4 font-semibold text-slate-800">
+                            <td class="font-semibold">
                                 Rp {{ number_format($obat->harga, 0, ',', '.') }}
                             </td>
 
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end gap-2">
+                            {{-- STOK --}}
+                            <td>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                    {{ $obat->stok > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }}">
+                                    {{ $obat->stok }}
+                                </span>
+                            </td>
 
-                                    {{-- Edit --}}
-                                    <a href="{{ route('obat.edit', $obat->id) }}" class="inline-flex items-center gap-1 px-4 py-2 
-                                              bg-amber-500 hover:bg-amber-600 
-                                              text-white text-xs font-semibold 
-                                              rounded-lg transition">
-                                        <i class="fas fa-pen text-xs"></i>
-                                        Edit
-                                    </a>
+                            <td class="text-right">
+                                <a href="{{ route('obat.edit', $obat->id) }}"
+                                    class="px-3 py-1 bg-yellow-500 text-white rounded">
+                                    Edit
+                                </a>
 
-                                    {{-- Delete --}}
-                                    <form action="{{ route('obat.destroy', $obat->id) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
+                                <form action="{{ route('obat.destroy', $obat->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
 
-                                        <button type="submit"
-                                            onclick="return confirm('Yakin ingin menghapus obat ini?')" class="inline-flex items-center gap-1 px-4 py-2 
-                                                   bg-red-500 hover:bg-red-600 
-                                                   text-white text-xs font-semibold 
-                                                   rounded-lg transition">
-                                            <i class="fas fa-trash text-xs"></i>
-                                            Hapus
-                                        </button>
-                                    </form>
-
-                                </div>
+                                    <button onclick="return confirm('Hapus data?')"
+                                        class="px-3 py-1 bg-red-500 text-white rounded">
+                                        Hapus
+                                    </button>
+                                </form>
                             </td>
 
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="text-center py-12 text-slate-400">
-                                <i class="fas fa-inbox text-3xl mb-3 block"></i>
+                            <td colspan="5" class="text-center py-10 text-gray-400">
                                 Belum ada data obat
                             </td>
                         </tr>
