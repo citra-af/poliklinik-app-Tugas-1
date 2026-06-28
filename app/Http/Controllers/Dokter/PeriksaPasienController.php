@@ -50,12 +50,31 @@ class PeriksaPasienController extends Controller
         ]);
 
         foreach ($obatIds as $idObat) {
+
+            $obat = Obat::find($idObat);
+
+            // ❌ CEK OBAT ADA ATAU TIDAK
+            if (!$obat) {
+                return back()->with('error', 'Obat tidak ditemukan');
+            }
+
+            // ❌ CEK STOK HABIS
+            if ($obat->stok <= 0) {
+                return back()->with('error', 'Stok obat ' . $obat->nama_obat . ' habis');
+            }
+
+            // ✅ KURANGI STOK
+            $obat->stok = $obat->stok - 1;
+            $obat->save();
+
+            // ✅ SIMPAN DETAIL PERIKSA
             DetailPeriksa::create([
                 'id_periksa' => $periksa->id,
                 'id_obat' => $idObat,
             ]);
         }
 
-        return redirect()->route('periksa-pasien.index')->with('success', 'Data periksa berhasil disimpan.');
+        return redirect()->route('periksa-pasien.index')
+            ->with('success', 'Data periksa berhasil disimpan.');
     }
 }
