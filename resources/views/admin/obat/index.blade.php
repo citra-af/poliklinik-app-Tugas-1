@@ -49,12 +49,23 @@
                             </td>
 
                             {{-- STOK --}}
-                            <td>
-                                <span class="px-3 py-1 rounded-full text-xs font-bold
-                                    {{ $obat->stok > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }}">
-                                    {{ $obat->stok }}
-                                </span>
-                            </td>
+                           <td>
+    @if($obat->stok == 0)
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600">
+            Habis ({{ $obat->stok }})
+        </span>
+
+    @elseif($obat->stok <= 5)
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+            Menipis ({{ $obat->stok }})
+        </span>
+
+    @else
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-600">
+            Aman ({{ $obat->stok }})
+        </span>
+    @endif
+</td>
 
                             <td class="text-right">
                                 <a href="{{ route('obat.edit', $obat->id) }}"
